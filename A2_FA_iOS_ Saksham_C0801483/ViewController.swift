@@ -34,12 +34,14 @@ class ViewController: UIViewController {
         products = CoreDataStack.shared.fetch(from: "Product", with: nil, sortDescriptor: nil) as? [Product] ?? []
         if products.isEmpty{
             for i in 0 ..< productIDs.count{
-                let product = CoreDataStack.shared.object(for: "Product") as? Product
-                product?.id = productIDs[i]
-                product?.name = productNames[i]
-                product?.provider = productProvides[i]
-                product?.discreption = productDescs[i]
-                product?.price = productPrices[i]
+                if let product = CoreDataStack.shared.object(for: "Product") as? Product {
+                    product.id = productIDs[i]
+                    product.name = productNames[i]
+                    product.provider = productProvides[i]
+                    product.discreption = productDescs[i]
+                    product.price = productPrices[i]
+                    products.append(product)
+                }
             }
             CoreDataStack.shared.saveContext()
         }
