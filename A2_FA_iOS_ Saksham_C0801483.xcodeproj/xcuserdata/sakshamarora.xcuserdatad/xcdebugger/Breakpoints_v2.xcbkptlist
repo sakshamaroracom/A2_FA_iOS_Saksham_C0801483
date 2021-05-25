@@ -16,7 +16,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "34"
             endingLineNumber = "34"
-            landmarkName = "fetchProducts()"
+            landmarkName = "editBtnAxn()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -30,9 +30,9 @@
             filePath = "A2_FA_iOS_ Saksham_C0801483/ViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "62"
-            endingLineNumber = "62"
-            landmarkName = "tableView(_:cellForRowAt:)"
+            startingLineNumber = "60"
+            endingLineNumber = "60"
+            landmarkName = "getProviders()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -46,9 +46,9 @@
             filePath = "A2_FA_iOS_ Saksham_C0801483/ViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "55"
-            endingLineNumber = "55"
-            landmarkName = "tableView(_:numberOfRowsInSection:)"
+            startingLineNumber = "53"
+            endingLineNumber = "53"
+            landmarkName = "setupScreen()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

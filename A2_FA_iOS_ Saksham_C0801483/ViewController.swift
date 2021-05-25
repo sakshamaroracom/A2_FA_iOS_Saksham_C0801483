@@ -10,68 +10,204 @@ import UIKit
 class ViewController: UIViewController {
     @IBOutlet var searchBar: UISearchBar!
     @IBOutlet weak var tableview: UITableView!
+    @IBOutlet weak var showBtn: UIButton!
     var activeSearch:Bool = false
     var products:[Product] = []
     var searchProducts:[Product] = []
-    var productNames  = ["Television", "Radio" , "Fridge" , "iPhone", "Macbook", "Watch", "Pen", "Table", "Chair", "Wallet"]
-    var productIDs  = ["101", "102" , "103" , "104", "105", "106", "107", "108", "109", "110"]
-    var productPrices  = ["33101", "1102" , "11103" , "51104", "151105", "1106", "10", "5108", "509", "110"]
-    var productProvides  = ["Sony", "Philips" , "LG" , "Apple", "Apple", "Fasttrack", "Win", "Neelam", "Neelam", "Woodland"]
-    var productDescs  = ["Color TV", "All in one Radio & FM" , "LG Fridge" , "64 GB ROM", "16 GB RAM 256 GB SSD", "Water proof watch", "Blue color pen", "White color Table", "White color Chair", "Leather Wallet"]
+    var providers:[String:[Product]] = [:]
+    var searchProviders:[String:[Product]] = [:]
+    var selectedScreen = SelectedScreen.products
+    var isEdit = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Products"
         tableview.delegate = self
         tableview.dataSource = self
         searchBar.delegate = self
         tableview.tableHeaderView = UIView(frame: .zero)
-        self.fetchProducts()
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(self.editBtnAxn))
+    }
+    
+    @objc func editBtnAxn(){
+        isEdit = !isEdit
+        self.tableview.reloadData()
+    }
+    
+    func setupScreen(){
+        isEdit = false
+        self.searchBar.text = ""
+        self.searchBar.resignFirstResponder()
+        self.view.endEditing(true)
+        self.activeSearch = false
+        self.searchProducts.removeAll()
+        if selectedScreen == .products{
+            self.title = "Products"
+            showBtn.setTitle("Show Providers", for: .normal)
+            self.fetchProducts()
+        }
+        else{
+            self.title = "Providers"
+            showBtn.setTitle("Show Products", for: .normal)
+            self.getProviders()
+        }
+        self.tableview.reloadData()
+    }
+    
+    func getProviders(){
+        self.providers.removeAll()
+        self.searchProviders.removeAll()
+        for product in self.products{
+            var array = self.providers[product.provider ?? ""] ?? []
+            array.append(product)
+            self.providers[product.provider ?? ""] = array
+        }
     }
     
     
     func fetchProducts(){
         products = CoreDataStack.shared.fetch(from: "Product", with: nil, sortDescriptor: nil) as? [Product] ?? []
-        if products.isEmpty{
-            for i in 0 ..< productIDs.count{
-                if let product = CoreDataStack.shared.object(for: "Product") as? Product {
-                    product.id = productIDs[i]
-                    product.name = productNames[i]
-                    product.provider = productProvides[i]
-                    product.discreption = productDescs[i]
-                    product.price = productPrices[i]
-                    products.append(product)
-                }
-            }
-            CoreDataStack.shared.saveContext()
-        }
-        tableview.reloadData()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        self.setupScreen()
+    }
+    
+    @IBAction func addProduct(_ sender: Any) {
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "ProductViewController") as! ProductViewController
+        vc.delegate = self
+        self.present(vc, animated: true, completion: nil)
+    }
+    
+    @IBAction func show(_ sender: Any) {
+        selectedScreen = selectedScreen == .products ? .providers : .products
+        self.setupScreen()
+    }
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if activeSearch{
-            return searchProducts.count
+        if selectedScreen == .products{
+            if activeSearch{
+                return searchProducts.count
+            }
+            return products.count
         }
-        return products.count
+        if activeSearch{
+            return searchProviders.keys.count
+        }
+        return providers.keys.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableview.dequeueReusableCell(withIdentifier: "ListTableViewCell") as! ListTableViewCell
-        var item:Product?
-        if activeSearch{
-            item = searchProducts[indexPath.row]
+        if isEdit{
+            cell.deleteIcon.isHidden = false
         }
         else{
-            item = products[indexPath.row]
+            cell.deleteIcon.isHidden = true
         }
-        cell.titleLbl.text = item?.name
-        cell.detailLbl.text = item?.discreption
+        if selectedScreen == .products{
+            var item:Product?
+            if activeSearch{
+                item = searchProducts[indexPath.row]
+            }
+            else{
+                item = products[indexPath.row]
+            }
+            cell.selectionStyle = .none
+            cell.iconView.isHidden = true
+            cell.titleLbl.text = item?.name
+            cell.detailLbl.text = item?.discreption
+            return cell
+        }
+        var key:String?
+        var count: Int = 0
+        if activeSearch{
+            key = Array(searchProviders.keys)[indexPath.row]
+            count = searchProviders[key ?? ""]?.count ?? 0
+        }
+        else{
+            key = Array(providers.keys)[indexPath.row]
+            count = providers[key ?? ""]?.count ?? 0
+        }
+        cell.iconView.isHidden = false
+        cell.selectionStyle = .none
+        cell.titleLbl.text = key
+        cell.detailLbl.text = "\(count)"
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if selectedScreen == .products{
+            var item:Product?
+            if activeSearch{
+                item = searchProducts[indexPath.row]
+            }
+            else{
+                item = products[indexPath.row]
+            }
+            let vc = self.storyboard?.instantiateViewController(withIdentifier: "ProductViewController") as! ProductViewController
+            vc.item = item
+            vc.delegate = self
+            self.present(vc, animated: true, completion: nil)
+        }
+        else{
+            var key:String?
+            var products: [Product] = []
+            if activeSearch{
+                key = Array(searchProviders.keys)[indexPath.row]
+                products = searchProviders[key ?? ""] ?? []
+            }
+            else{
+                key = Array(providers.keys)[indexPath.row]
+                products = providers[key ?? ""] ?? []
+            }
+            
+            let vc = self.storyboard?.instantiateViewController(withIdentifier: "ProductListViewController") as! ProductListViewController
+            vc.products = products
+            vc.title = key
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
+    {
+        return isEdit
+    }
+    
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == .delete) {
+            if selectedScreen == .products{
+                var item:Product
+                if activeSearch{
+                    item = searchProducts[indexPath.row]
+                }
+                else{
+                    item = products[indexPath.row]
+                }
+                CoreDataStack.shared.delete(item)
+            }
+            else{
+                var key:String?
+                var products: [Product] = []
+                if activeSearch{
+                    key = Array(searchProviders.keys)[indexPath.row]
+                    products = searchProviders[key ?? ""] ?? []
+                }
+                else{
+                    key = Array(providers.keys)[indexPath.row]
+                    products = providers[key ?? ""] ?? []
+                }
+                
+                for product in products{
+                    CoreDataStack.shared.delete(product)
+                }
+            }
+            self.fetchProducts()
+            self.setupScreen()
+        }
+    }
     
 }
 
@@ -102,7 +238,7 @@ extension ViewController: UISearchBarDelegate{
             self.activeSearch = false;
             self.searchBar?.isSearchResultsButtonSelected = false
             self.searchBar?.resignFirstResponder()
-        } else {
+        } else if selectedScreen == .products{
             self.activeSearch = true;
             self.searchProducts = self.products.filter({ (product) -> Bool in
                 let tmp: NSString = (product.name ?? "") as NSString
@@ -112,6 +248,33 @@ extension ViewController: UISearchBarDelegate{
                 return range.location != NSNotFound || descRange.location != NSNotFound
             })
         }
+        else{
+            self.activeSearch = true;
+            self.searchProviders = self.providers.filter({ (product) -> Bool in
+                let tmp: NSString = (product.key ) as NSString
+                let range = tmp.range(of: searchText, options: NSString.CompareOptions.caseInsensitive)
+                return range.location != NSNotFound
+            })
+        }
         self.tableview.reloadData()
     }
+}
+
+
+extension ViewController: DataFetcher{
+    func fetchData() {
+        setupScreen()
+    }
+    
+}
+
+
+protocol DataFetcher{
+    func fetchData()
+}
+
+
+enum SelectedScreen{
+    case products
+    case providers
 }

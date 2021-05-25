@@ -171,6 +171,11 @@ extension CoreDataStack {
         return managedObjects
     }
     
+    func delete(_ obj:NSManagedObject){
+        self.mainManagedObjectContext.delete(obj)
+        self.saveContext()
+    }
+    
     func object(for anEntity: String) -> AnyObject {
         return self.managedObject(for: anEntity)
     }
