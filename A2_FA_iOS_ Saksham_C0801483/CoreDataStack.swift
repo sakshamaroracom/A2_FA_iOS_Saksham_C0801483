@@ -24,6 +24,7 @@ class CoreDataStack: NSObject {
     }
     
     // MARK:- Core Data Stack
+    
     fileprivate lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: self.storeName)
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
@@ -101,7 +102,9 @@ class CoreDataStack: NSObject {
 
     // MARK: Member Functions
     fileprivate func setupCoreData()->Any {
+        
         // fetch PersistentStoreCoordinator
+        
         _ = mainManagedObjectContext.persistentStoreCoordinator
         self.addPersistentStore()
         return self
@@ -127,10 +130,14 @@ class CoreDataStack: NSObject {
 extension CoreDataStack {
     
     // MARK:- Open APIs
+    
     func initialize(with modelName: String)->Any{
         self.storeName = modelName
         return self.setupCoreData()
     }
+    
+    // MARK:- Saving Data In Core Data
+    // save data in core data
     
     func saveContext() {
         mainManagedObjectContext.performAndWait {
@@ -154,6 +161,9 @@ extension CoreDataStack {
         }
     }
     
+    // MARK:- Fetching Data from Core Data
+    // fetch data from core data
+    
     func fetch(from entity: String, with predicate: NSPredicate?, sortDescriptor: NSSortDescriptor?) -> [NSManagedObject] {
         var managedObjects = [NSManagedObject]()
         let fetchrequest = NSFetchRequest<NSFetchRequestResult>(entityName: entity)
@@ -171,10 +181,16 @@ extension CoreDataStack {
         return managedObjects
     }
     
+    // MARK:- Deleting Data from Core Data
+    // delete data from core data
+    
     func delete(_ obj:NSManagedObject){
         self.mainManagedObjectContext.delete(obj)
         self.saveContext()
     }
+    
+    // MARK:- Initilising Object for Core Data
+    // initialise object for core data
     
     func object(for anEntity: String) -> AnyObject {
         return self.managedObject(for: anEntity)

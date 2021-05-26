@@ -5,6 +5,8 @@
 //  Created by Saksham Arora on 23/05/21.
 //
 
+// MARK: -  Final Assignment
+
 import UIKit
 
 class ViewController: UIViewController {
@@ -19,19 +21,34 @@ class ViewController: UIViewController {
     var selectedScreen = SelectedScreen.products
     var isEdit = false
     
+    // MARK: -  View Controller Function
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableview.delegate = self
         tableview.dataSource = self
         searchBar.delegate = self
         tableview.tableHeaderView = UIView(frame: .zero)
+        
+      // MARK: -  Add Edit Button
+
+        
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(self.editBtnAxn))
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        self.setupScreen()
+    }
+    
+    // MARK: -  Edit Button Action
     
     @objc func editBtnAxn(){
         isEdit = !isEdit
         self.tableview.reloadData()
     }
+    
+    // MARK: -  Screen Setup
+    // Used for setup inscreen according to selected screen
     
     func setupScreen(){
         isEdit = false
@@ -53,6 +70,9 @@ class ViewController: UIViewController {
         self.tableview.reloadData()
     }
     
+    // MARK: -  Get Provider
+    // Get providers from the list
+    
     func getProviders(){
         self.providers.removeAll()
         self.searchProviders.removeAll()
@@ -63,20 +83,24 @@ class ViewController: UIViewController {
         }
     }
     
+    // MARK: -  Get Products
+    // get products from core data
     
     func fetchProducts(){
         products = CoreDataStack.shared.fetch(from: "Product", with: nil, sortDescriptor: nil) as? [Product] ?? []
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        self.setupScreen()
-    }
+    // MARK: -  Opening Add Product Screen
+    // open add product screen
     
-    @IBAction func addProduct(_ sender: Any) {
+        @IBAction func addProduct(_ sender: Any) {
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "ProductViewController") as! ProductViewController
         vc.delegate = self
         self.present(vc, animated: true, completion: nil)
     }
+    
+    // MARK: -  Showing Data According to Selected Screen
+    // show data according to selected screen
     
     @IBAction func show(_ sender: Any) {
         selectedScreen = selectedScreen == .products ? .providers : .products
@@ -84,7 +108,16 @@ class ViewController: UIViewController {
     }
 }
 
+// MARK: -  Table View Delegate Function
+// table view delegate functions
+
+
+
 extension ViewController: UITableViewDelegate, UITableViewDataSource{
+
+    // MARK: -  Returning Number of Rows according to Product Count
+// return number of rows according to product count
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if selectedScreen == .products{
             if activeSearch{
@@ -97,6 +130,9 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource{
         }
         return providers.keys.count
     }
+    
+    // MARK: -  Conf Table View Cell UI or Data
+    // conf table view cell ui or data
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableview.dequeueReusableCell(withIdentifier: "ListTableViewCell") as! ListTableViewCell
@@ -137,6 +173,10 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource{
         return cell
     }
     
+    
+    // MARK: -  Action on Clicking the Cell
+    // action on click on cell
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if selectedScreen == .products{
             var item:Product?
@@ -175,6 +215,8 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource{
         return isEdit
     }
     
+    // MARK: -  Deleting Product
+    // delete product functionality
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
@@ -213,6 +255,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource{
 
 
 // MARK: -  Search Bar
+
 extension ViewController: UISearchBarDelegate{
     public func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         self.searchBar?.becomeFirstResponder()
@@ -232,6 +275,10 @@ extension ViewController: UISearchBarDelegate{
         self.activeSearch = false;
         self.searchBar!.resignFirstResponder()
     }
+    
+    
+    // MARK: -  Search according to the text
+    // search according to the text
     
     public func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if( searchText.isEmpty){
@@ -260,6 +307,8 @@ extension ViewController: UISearchBarDelegate{
     }
 }
 
+// MARK: -  Extension for Update Data
+// extension for update data
 
 extension ViewController: DataFetcher{
     func fetchData() {

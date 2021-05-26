@@ -20,13 +20,23 @@ class ProductViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.showProductDetail()
+        
+        // MARK:- Adding Tap Gesture To Dismiss Keyboard
+        // add tap gesture to dismiss keyboard
+        
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyBoard))
         self.view.addGestureRecognizer(tap)
     }
     
+    // MARK:- Function to Dismiss the Keyboard - When Tapped Anywhere Outside The Keyboard
+    // function to dismiss the keyboard when tapped anywhere outside
+    
     @objc func dismissKeyBoard(){
         self.view.endEditing(true)
     }
+    
+    // MARK:- Showing Product Detail
+    // show product detail
     
     func showProductDetail(){
         if let product  = item{
@@ -37,6 +47,9 @@ class ProductViewController: UIViewController {
             descriptionTA.text = product.discreption
         }
     }
+    
+    // MARK:- Saving Product In Core Data
+    // Save product in core data
     
     @IBAction func saveBtnAxn(_ sender: Any) {
         self.view.endEditing(true)
@@ -50,6 +63,9 @@ class ProductViewController: UIViewController {
             self.delegate?.fetchData()
         }
     }
+    
+    // MARK:- Updating Core Data
+    // update core data
     
     func updateInDB(product:Product){
         if let name = productNameTF.text, let id = productIdTF.text, let provider = providerTF.text, let price = priceTF.text , let desc = descriptionTA.text{
